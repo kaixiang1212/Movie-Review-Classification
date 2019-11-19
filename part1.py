@@ -24,24 +24,16 @@ class rnn(torch.nn.Module):
         self.hh = torch.nn.Linear(128, 128)
 
     def rnnCell(self, input, hidden):
-        """
-        TODO: Using only the above defined linear layers and a tanh
-              activation, create an Elman RNN cell.  You do not need
-              to include an output layer.  The network should take
-              some input (inputDim = 64) and the current hidden state
-              (hiddenDim = 128), and return the new hidden state.
-        """
+        # Passed
+        return torch.tanh(self.ih(input) + self.hh(hidden))
 
     def forward(self, input):
         hidden = torch.zeros(128)
-        """
-        TODO: Using self.rnnCell, create a model that takes as input
-              a sequence of size [seqLength, batchSize, inputDim]
-              and passes each input through the rnn sequentially,
-              updating the (initally zero) hidden state.
-              Return the final hidden state after the
-              last input in the sequence has been processed.
-        """
+        # Passed
+        for i in range(input.size(0)):
+            hidden = self.rnnCell(input[i], hidden)
+
+        return hidden
 
 
 class rnnSimplified(torch.nn.Module):
@@ -53,7 +45,7 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        self.net = rnn.forward
+        self.net = None
 
     def forward(self, input):
         _, hidden = self.net(input)
@@ -66,7 +58,7 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    lstm = torch.nn.LSTM(input_size=input.size(), hidden_size=hiddenSize)
+    lstm = torch.nn.LSTM(input_size=input.size(2), hidden_size=hiddenSize.size)
     return lstm(input=input)
 
 
