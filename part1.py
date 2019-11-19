@@ -14,6 +14,7 @@ DOING SO MAY CAUSE YOUR CODE TO FAIL AUTOMATED TESTING.
 
 import torch
 
+
 class rnn(torch.nn.Module):
 
     def __init__(self):
@@ -42,6 +43,7 @@ class rnn(torch.nn.Module):
               last input in the sequence has been processed.
         """
 
+
 class rnnSimplified(torch.nn.Module):
 
     def __init__(self):
@@ -51,25 +53,23 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        self.net = None
+        self.net = rnn.forward
 
     def forward(self, input):
         _, hidden = self.net(input)
 
         return hidden
 
+
 def lstm(input, hiddenSize):
     """
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    lstm = None
-    return lstm(input)
+    lstm = torch.nn.LSTM(input_size=input.size(), hidden_size=hiddenSize)
+    return lstm(input=input)
+
 
 def conv(input, weight):
-    """
-    TODO: Return the convolution of input and weight tensors,
-          where input contains sequential data.
-          The convolution should be along the sequence axis.
-          input is of size [batchSize, inputDim, seqLength]
-    """
+    # Passed
+    return torch.nn.functional.conv1d(input, weight)
