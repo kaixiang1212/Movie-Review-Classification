@@ -45,7 +45,7 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        self.net = None
+        self.net = torch.nn.RNN(input_size=64, hidden_size=128)
 
     def forward(self, input):
         _, hidden = self.net(input)
@@ -58,8 +58,8 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    lstm = torch.nn.LSTM(input_size=input.size(2), hidden_size=hiddenSize.size)
-    return lstm(input=input)
+    lstm = torch.nn.LSTM(input_size=input.size(2), hidden_size=hiddenSize)
+    return lstm(input.permute(1, 0, 2))
 
 
 def conv(input, weight):
