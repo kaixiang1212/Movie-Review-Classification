@@ -72,6 +72,19 @@ class NetworkCnn(tnn.Module):
         TODO:
         Create and initialise weights and biases for the layers.
         """
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.layers = torch.nn.Sequential(
+            tnn.Conv1d(in_channels=50, out_channels=50, kernel_size=8, padding=5),
+            tnn.ReLU(),
+            tnn.MaxPool1d(kernel_size=4),
+            tnn.Conv1d(in_channels=50, out_channels=50, kernel_size=8, padding=5),
+            tnn.ReLU(),
+            tnn.MaxPool1d(kernel_size=4),
+            tnn.Conv1d(in_channels=50, out_channels=50, kernel_size=8, padding=5),
+            tnn.ReLU(),
+            tnn.AdaptiveMaxPool1d(output_size=1)
+        ).to(self.device)
+        self.linear = tnn.Linear(in_features=50, out_features=1).to(self.device)
 
     def forward(self, input, length):
         """
@@ -79,6 +92,15 @@ class NetworkCnn(tnn.Module):
         TODO:
         Create the forward pass through the network.
         """
+        # input = [ batch, length, input_dim ]
+        batch_num = input.shape[0]
+        x = input.permute(0, 2, 1)
+        # print(x.size())
+        x = self.layers(x)
+        x = x.reshape(batch_num, -1)
+        # print(x.size())
+        x = self.linear(x)
+        return x.reshape(batch_num)
 
 
 def lossFunc():
@@ -88,22 +110,30 @@ def lossFunc():
     will add a sigmoid to the output and calculate the binary
     cross-entropy.
     """
+    return torch.nn.BCEWithLogitsLoss()
 
 
 def measures(outputs, labels):
-    """
-    TODO:
-    Return (in the following order): the number of true positive
-    classifications, true negatives, false positives and false
-    negatives from the given batch outputs and provided labels.
+    tp, tn, fp, fn = 0, 0, 0, 0
+    for i in range(len(outputs)):
+        if labels[i] == outputs[i]:
+            if labels[i]:
+                tp += 1
+            else:
+                tn += 1
+        else:
+            if outputs[i]:
+                fp += 1
+            else:
+                fn += 1
 
-    outputs and labels are torch tensors.
-    """
+    return tp, tn, fp, fn
 
 
 def main():
     # Use a GPU if available, as it should be faster.
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cpu")
     print("Using device: " + str(device))
 
     # Load the training dataset, and create a data loader to generate a batch.
@@ -120,12 +150,14 @@ def main():
                                                          sort_key=lambda x: len(x.text), sort_within_batch=True)
 
     # Create an instance of the network in memory (potentially GPU memory). Can change to NetworkCnn during development.
-    net = NetworkLstm().to(device)
+    net = NetworkCnn().to(device)
+    # net = NetworkLstm().to(device)
 
     criterion = lossFunc()
     optimiser = topti.Adam(net.parameters(), lr=0.001)  # Minimise the loss using the Adam algorithm.
 
     for epoch in range(10):
+    # for epoch in range(3):
         running_loss = 0
 
         for i, batch in enumerate(trainLoader):
@@ -141,6 +173,7 @@ def main():
 
             # Forward pass through the network.
             output = net(inputs, length)
+            # print(output)
 
             loss = criterion(output, labels)
 
