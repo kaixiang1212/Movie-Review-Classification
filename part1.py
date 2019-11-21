@@ -54,10 +54,7 @@ class rnnSimplified(torch.nn.Module):
 
 
 def lstm(input, hiddenSize):
-    """
-    TODO: Let variable lstm be an instance of torch.nn.LSTM.
-          Variable input is of size [batchSize, seqLength, inputDim]
-    """
+    # pass
     lstm = torch.nn.LSTM(input_size=input.size(2), hidden_size=hiddenSize, batch_first = True)
     return lstm(input)
 
