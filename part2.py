@@ -101,7 +101,6 @@ class NetworkCnn(tnn.Module):
         self.linear = tnn.Linear(in_features=50, out_features=1).to(self.device)
 
     def forward(self, input, length):
-        print("forwarding")
         batch_num = input.shape[0]
         x = input.permute(0, 2, 1)
         x = self.layers(x)
@@ -176,7 +175,6 @@ def main():
             optimiser.zero_grad()
 
             # Forward pass through the network.
-            print("about to forward ma dude")
             output = net(inputs, length)
 
             loss = criterion(output, labels)
