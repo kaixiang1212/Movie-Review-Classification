@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 """
 part2.py
-
 UNSW COMP9444 Neural Networks and Deep Learning
-
 ONLY COMPLETE METHODS AND CLASSES MARKED "TODO".
-
 DO NOT MODIFY IMPORTS. DO NOT ADD EXTRA FUNCTIONS.
 DO NOT MODIFY EXISTING FUNCTION SIGNATURES.
 DO NOT IMPORT ADDITIONAL LIBRARIES.
 DOING SO MAY CAUSE YOUR CODE TO FAIL AUTOMATED TESTING.
-
 YOU MAY MODIFY THE LINE net = NetworkLstm().to(device)
 """
 
@@ -34,20 +30,44 @@ class NetworkLstm(tnn.Module):
     Output should be 1d tensor of shape [batch_size].
     """
 
+
     def __init__(self):
         super(NetworkLstm, self).__init__()
         """
         TODO:
         Create and initialise weights and biases for the layers.
         """
-
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.lstm = tnn.LSTM(input_size = 50, hidden_size = 100, batch_first= True)
+        self.layers = torch.nn.Sequential(
+            tnn.Linear(in_features=100, out_features=64).to(self.device),
+            tnn.ReLU()
+        ).to(self.device)  
+        self.lin = tnn.Linear(in_features=64, out_features=1).to(self.device)		
     def forward(self, input, length):
         """
         DO NOT MODIFY FUNCTION SIGNATURE
         TODO:
         Create the forward pass through the network.
         """
-
+        batch_num = input.shape[0]
+        #print(input.size())
+        #print(batch_num)
+        #x = input.permute(0, 2, 1) #index 0 becomes index 0, index 2 becomes index 1 and index 1 becomes index 2
+        x = input
+        x, (c,n) = self.lstm(x)
+        #print(c)	
+        #print(c.size())
+        c = c.reshape(batch_num, -1)
+        #print(c.size())
+        c = self.layers(c)
+        #print(c.size())
+        c = self.lin(c)
+        #print(c.size())
+        c = c.reshape(batch_num)
+        #print("final c ")
+        #print(c.size())
+        return c 
 
 # Class for creating the neural network.
 class NetworkCnn(tnn.Module):
@@ -55,10 +75,8 @@ class NetworkCnn(tnn.Module):
     Implement a Convolutional Neural Network.
     All conv layers should be of the form:
     conv1d(channels=50, kernel size=8, padding=5)
-
     Conv -> ReLu -> maxpool(size=4) -> Conv -> ReLu -> maxpool(size=4) ->
     Conv -> ReLu -> maxpool over time (global pooling) -> Linear(1)
-
     The max pool over time operation refers to taking the
     maximum val from the entire output channel. See Kim et. al. 2014:
     https://www.aclweb.org/anthology/D14-1181/
@@ -68,10 +86,6 @@ class NetworkCnn(tnn.Module):
 
     def __init__(self):
         super(NetworkCnn, self).__init__()
-        """
-        TODO:
-        Create and initialise weights and biases for the layers.
-        """
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.layers = torch.nn.Sequential(
             tnn.Conv1d(in_channels=50, out_channels=50, kernel_size=8, padding=5),
@@ -87,46 +101,36 @@ class NetworkCnn(tnn.Module):
         self.linear = tnn.Linear(in_features=50, out_features=1).to(self.device)
 
     def forward(self, input, length):
-        """
-        DO NOT MODIFY FUNCTION SIGNATURE
-        TODO:
-        Create the forward pass through the network.
-        """
-        # input = [ batch, length, input_dim ]
+        print("forwarding")
         batch_num = input.shape[0]
         x = input.permute(0, 2, 1)
-        # print(x.size())
         x = self.layers(x)
         x = x.reshape(batch_num, -1)
-        # print(x.size())
         x = self.linear(x)
-        return x.reshape(batch_num)
+        x = x.reshape(batch_num)
+        return x
 
 
 def lossFunc():
-    """
-    TODO:
-    Return a loss function appropriate for the above networks that
-    will add a sigmoid to the output and calculate the binary
-    cross-entropy.
-    """
-    return torch.nn.BCEWithLogitsLoss()
+    return tnn.BCEWithLogitsLoss()
 
 
 def measures(outputs, labels):
+    # passed
+    outputs = torch.sigmoid(outputs)
     tp, tn, fp, fn = 0, 0, 0, 0
-    for i in range(len(outputs)):
-        if labels[i] == outputs[i]:
-            if labels[i]:
+
+    for i in range(len(labels)):
+        if outputs[i] >= 0.5:
+            if labels[i] == 1:
                 tp += 1
             else:
-                tn += 1
-        else:
-            if outputs[i]:
                 fp += 1
-            else:
+        elif outputs[i] < 0.5:
+            if labels[i] == 1:
                 fn += 1
-
+            else:
+                tn += 1
     return tp, tn, fp, fn
 
 
@@ -156,8 +160,8 @@ def main():
     criterion = lossFunc()
     optimiser = topti.Adam(net.parameters(), lr=0.001)  # Minimise the loss using the Adam algorithm.
 
-    for epoch in range(10):
-    # for epoch in range(3):
+    # for epoch in range(10):
+    for epoch in range(1):
         running_loss = 0
 
         for i, batch in enumerate(trainLoader):
@@ -172,10 +176,11 @@ def main():
             optimiser.zero_grad()
 
             # Forward pass through the network.
+            print("about to forward ma dude")
             output = net(inputs, length)
-            # print(output)
 
             loss = criterion(output, labels)
+            # print(loss)
 
             # Calculate gradients.
             loss.backward()
