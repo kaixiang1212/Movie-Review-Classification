@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../Assignment 1/.idea/Assignment 1.iml" filepath="$PROJECT_DIR$/../Assignment 1/.idea/Assignment 1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/hw2.iml" filepath="$PROJECT_DIR$/.idea/hw2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../COMP4920/comp4920-game/web_server/.idea/web_server.iml" filepath="$PROJECT_DIR$/../../COMP4920/comp4920-game/web_server/.idea/web_server.iml" />
+    </modules>
+  </component>
+</project>

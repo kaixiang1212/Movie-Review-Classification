@@ -12,31 +12,48 @@ from imdb_dataloader import IMDB
 class Network(tnn.Module):
     def __init__(self):
         super(Network, self).__init__()
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.lstm = tnn.LSTM(input_size=50, hidden_size=100, batch_first=True)
+        self.layers = torch.nn.Sequential(
+            tnn.Linear(in_features=100, out_features=64).to(self.device),
+            tnn.ReLU()
+        ).to(self.device)
+        self.lin = tnn.Linear(in_features=64, out_features=1).to(self.device)
 
-    def forward(self, input, length):
+    def forward(self, input: torch.Tensor, length):
         """
         DO NOT MODIFY FUNCTION SIGNATURE
-        Create the forward pass through the network.
+        TODO: Create the forward pass through the network.
         """
+        batch_num = input.shape[0]
+        x = input
+        x, (c, n) = self.lstm(x)
+        c = c.reshape(batch_num, -1)
+        c = self.layers(c)
+        c = self.lin(c)
+        c = c.reshape(batch_num)
+        return c
 
 
 class PreProcessing():
     def pre(x):
-        """Called after tokenization"""
+        """ TODO: Called after tokenization"""
         return x
 
     def post(batch, vocab):
-        """Called after numericalization but prior to vectorization"""
-        return batch, vocab
+        """ TODO: Called after numericalization but prior to vectorization"""
+        return batch
 
     text_field = data.Field(lower=True, include_lengths=True, batch_first=True, preprocessing=pre, postprocessing=post)
 
 
 def lossFunc():
     """
-    Define a loss function appropriate for the above networks that will
+    TODO: Define a loss function appropriate for the above networks that will
     add a sigmoid to the output and calculate the binary cross-entropy.
     """
+    return torch.nn.BCEWithLogitsLoss()
+
 
 def main():
     # Use a GPU if available, as it should be faster.
@@ -56,10 +73,10 @@ def main():
                                                          sort_key=lambda x: len(x.text), sort_within_batch=True)
 
     net = Network().to(device)
-    criterion =lossFunc()
+    criterion = lossFunc()
     optimiser = topti.Adam(net.parameters(), lr=0.001)  # Minimise the loss using the Adam algorithm.
 
-    for epoch in range(10):
+    for epoch in range(30):
         running_loss = 0
 
         for i, batch in enumerate(trainLoader):
@@ -115,6 +132,7 @@ def main():
     accuracy = 100 * num_correct / len(dev)
 
     print(f"Classification accuracy: {accuracy}")
+
 
 if __name__ == '__main__':
     main()

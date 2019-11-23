@@ -24,12 +24,11 @@ class rnn(torch.nn.Module):
         self.hh = torch.nn.Linear(128, 128)
 
     def rnnCell(self, input, hidden):
-        # Passed
         return torch.tanh(self.ih(input) + self.hh(hidden))
 
     def forward(self, input):
         hidden = torch.zeros(128)
-        # Passed
+
         for i in range(input.size(0)):
             hidden = self.rnnCell(input[i], hidden)
 
@@ -40,11 +39,6 @@ class rnnSimplified(torch.nn.Module):
 
     def __init__(self):
         super(rnnSimplified, self).__init__()
-        """
-        TODO: Define self.net using a single PyTorch module such that
-              the network defined by this class is equivalent to the
-              one defined in class "rnn".
-        """
         self.net = torch.nn.RNN(input_size=64, hidden_size=128)
 
     def forward(self, input):
@@ -55,10 +49,9 @@ class rnnSimplified(torch.nn.Module):
 
 def lstm(input, hiddenSize):
     # pass
-    lstm = torch.nn.LSTM(input_size=input.size(2), hidden_size=hiddenSize, batch_first = True)
+    lstm = torch.nn.LSTM(input_size=input.size(2), hidden_size=hiddenSize, batch_first=True)
     return lstm(input)
 
 
 def conv(input, weight):
-    # Passed
     return torch.nn.functional.conv1d(input, weight)
