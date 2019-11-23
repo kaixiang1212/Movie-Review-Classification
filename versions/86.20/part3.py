@@ -16,8 +16,6 @@ class Network(tnn.Module):
         self.lstm = tnn.LSTM(input_size=50, hidden_size=100, batch_first=True)
         self.layers = torch.nn.Sequential(
             tnn.Linear(in_features=100, out_features=64).to(self.device),
-            tnn.ReLU(),
-            tnn.Linear(in_features=64, out_features=64).to(self.device),
             tnn.ReLU()
         ).to(self.device)
         self.lin = tnn.Linear(in_features=64, out_features=1).to(self.device)
@@ -40,27 +38,7 @@ class Network(tnn.Module):
 class PreProcessing():
     def pre(x):
         """ TODO: Called after tokenization"""
-        c = []
-        # full remove
-        # if match the whole word -> remove
-        html_format = ['/><br', '<br', '\x96']
-
-        # partially remove
-        numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
-        noise = ['<br', '/>']
-        punctuation = ['/', '"', ',', ':', '(', ')', '<', '>', '?', '.', '-', '\\', '!', '=', '*']
-        uninformatives = numbers + punctuation
-        prune = ['the', 'a', 'and', 'this', 'that', 'of', 'to', 'in', 'was', 'as', 'with', 'as', 'it', 'for', 'but',
-                 'on', 'you', 'he']
-        for word in x:
-            if word not in html_format:
-                for n in noise:
-                    word = word.replace(n, '')
-                for u in uninformatives:
-                    word = word.replace(u, '')
-                if word not in prune:
-                    c.append(word)
-        return c
+        return x
 
     def post(batch, vocab):
         """ TODO: Called after numericalization but prior to vectorization"""
@@ -98,7 +76,7 @@ def main():
     criterion = lossFunc()
     optimiser = topti.Adam(net.parameters(), lr=0.001)  # Minimise the loss using the Adam algorithm.
 
-    for epoch in range(30):
+    for epoch in range(50):
         running_loss = 0
 
         for i, batch in enumerate(trainLoader):

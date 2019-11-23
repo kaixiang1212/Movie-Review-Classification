@@ -16,8 +16,6 @@ class Network(tnn.Module):
         self.lstm = tnn.LSTM(input_size=50, hidden_size=100, batch_first=True)
         self.layers = torch.nn.Sequential(
             tnn.Linear(in_features=100, out_features=64).to(self.device),
-            tnn.ReLU(),
-            tnn.Linear(in_features=64, out_features=64).to(self.device),
             tnn.ReLU()
         ).to(self.device)
         self.lin = tnn.Linear(in_features=64, out_features=1).to(self.device)
